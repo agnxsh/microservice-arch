@@ -1,14 +1,31 @@
 package main
 
-import "log"
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
 
-const webPort = "8080"
+const webPort string = "8100"
 
 type Config struct {}
 
-func main{
+func main() {
 	
 	app:= Config{}
 
-	log.Println("Starting broker service on port %s", webPort)
+	log.Printf("Starting broker service on port %s\n", webPort)
+	//define http server
+	srv:= &http.Server{
+		Addr:		fmt.Sprintf(":%s", webPort),
+		Handler:	app.routes(),
+	}
+
+	//starting the server
+	err := srv.ListenAndServe()
+	if err!= nil {
+		log.Panic(err)
+	}
+
+	
 }

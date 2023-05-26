@@ -1,9 +1,8 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
-
-	"github.com/goccy/go-json"
 )
 
 type jsonResponse struct {
@@ -18,6 +17,9 @@ func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 		Message:	"Ping the broker",
 	}
 
-	out,_:=json.MarshalIndent(payload, "", "\t")
-	w.Header().Set("Content-Type")
+	out,_ := json.MarshalIndent(payload, "", "\t")
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusAccepted)
+	w.Write(out)
+
 }

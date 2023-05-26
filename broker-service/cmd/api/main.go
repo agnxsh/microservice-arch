@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const webPort string = "8100"
+const webPort string = "8080"
 
 type Config struct {}
 

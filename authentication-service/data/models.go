@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
@@ -75,8 +76,9 @@ func (u *User) GetAll() ([]*User, error){
 			return nil, err
 		}
 
-		return users, nil
+		
 	}
+	return users, nil
 }
 
 //GetByEmail returns one user by email
@@ -250,7 +252,7 @@ func (u *User) ResetPassword (password string) error {
 func (u *User) PasswordMatches(plainText string) (bool, error){
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
 	if err!=nil {
-		swtich {
+		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
 			//in case of invalid password
 			return false, nil

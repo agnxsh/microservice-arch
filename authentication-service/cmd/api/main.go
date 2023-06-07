@@ -1,6 +1,10 @@
 package main
 
-import "database/sql"
+import (
+	"authentication/data"
+	"database/sql"
+	"log"
+)
 
 const webPort = "80"
 
@@ -10,5 +14,7 @@ type Config struct {
 }
 
 func main(){
+	log.Println("Starting authetication service...")
 
+	 
 }

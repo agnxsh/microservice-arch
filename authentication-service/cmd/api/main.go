@@ -8,6 +8,10 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	_ "github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 const webPort = "80"
@@ -23,9 +27,16 @@ func main(){
 	log.Println("Starting authetication service...")
 
 	 //connection to DB
+	 conn := connectToDB()
+	 if conn == nil{
+		log.Panic("Can't connect to Postgres")
+	 }
 
 	 //setting up config
-	 app := Config{}
+	 app := Config{
+		DB: conn,
+		Models: data.New(conn),
+	 }
 
 	 //setting up the server
 	 srv := &http.Server {

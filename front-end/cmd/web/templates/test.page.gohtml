@@ -58,7 +58,7 @@
 
             }
 
-            fetch("http:\/\/localhost:81", body)
+            fetch("http:\/\/localhost:8080/handle", body)
             .then((response)=> response.json())
             .then((data)=> {
                 sent.innerHTML= JSON.stringify(payload, undefined, 4);  
@@ -81,7 +81,7 @@
                 method:'POST',
             }
 
-            fetch("http:\/\/localhost:81", body)
+            fetch("http:\/\/localhost:8080", body)
             .then((response)=> response.json())
             .then((data)=> {
                 sent.innerHTML=("empty post request");  

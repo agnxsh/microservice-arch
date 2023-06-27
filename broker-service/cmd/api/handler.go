@@ -8,55 +8,50 @@ import (
 )
 
 type RequestPayload struct {
-	Action	string			`json:"action"`
-	Auth 	AuthPayload		`json:"auth,omitpay"`
+	Action string      `json:"action"`
+	Auth   AuthPayload `json:"auth,omitempty"`
 }
 
 type AuthPayload struct {
-	Email		string	`json:"email"`
-	Password	string	`json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse{
-		Error:	false,
-		Message:	"Ping the broker",
+		Error:   false,
+		Message: "Hit the broker",
 	}
 
-	//calling a helper function instead of writing excessive lines of code :)
 	_ = app.writeJSON(w, http.StatusOK, payload)
-
-	// out,_ := json.MarshalIndent(payload, "", "\t")
-	// w.Header().Set("Content-Type","application/json")
-	// w.WriteHeader(http.StatusAccepted)
-	// w.Write(out)
-
 }
 
-func (app *Config) HandleSubmission (w http.ResponseWriter, r *http.Request){
-	 var requestPayload RequestPayload
+// HandleSubmission is the main point of entry into the broker. It accepts a JSON
+// payload and performs an action based on the value of "action" in that JSON.
+func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
+	var requestPayload RequestPayload
 
-	 err := app.readJSON(w, r, &requestPayload)
-	 if err != nil {
+	err := app.readJSON(w, r, &requestPayload)
+	if err != nil {
 		app.errorJSON(w, err)
 		return
-	 }
+	}
 
-	 switch requestPayload.Action {
-	
-	 case "auth":
+	switch requestPayload.Action {
+	case "auth":
 		app.authenticate(w, requestPayload.Auth)
-	 default:
+	default:
 		app.errorJSON(w, errors.New("unknown action"))
-	 }
+	}
 }
 
-func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload){
-	//creating some json to the send to the auth microservice
+// authenticate calls the authentication microservice and sends back the appropriate response
+func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
+	// create some json we'll send to the auth microservice
 	jsonData, _ := json.MarshalIndent(a, "", "\t")
 
-	//call the microservice
-	request, err := http.NewRequest("POST","http://authentication-service/authenticate",bytes.NewBuffer(jsonData))
+	// call the service
+	request, err := http.NewRequest("POST", "http://authentication-service/authenticate", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -70,18 +65,19 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload){
 	}
 	defer response.Body.Close()
 
-	//make sure we get back the correct status code
+	// make sure we get back the correct status code
 	if response.StatusCode == http.StatusUnauthorized {
 		app.errorJSON(w, errors.New("invalid credentials"))
 		return
 	} else if response.StatusCode != http.StatusAccepted {
-		app.errorJSON(w, errors.New("Error calling auth service"))
+		app.errorJSON(w, errors.New("error calling auth service"))
 		return
 	}
 
-	//reading the response body
+	// create a variable we'll read response.Body into
 	var jsonFromService jsonResponse
 
+	// decode the json from the auth service
 	err = json.NewDecoder(response.Body).Decode(&jsonFromService)
 	if err != nil {
 		app.errorJSON(w, err)
@@ -90,6 +86,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload){
 
 	if jsonFromService.Error {
 		app.errorJSON(w, err, http.StatusUnauthorized)
+		return
 	}
 
 	var payload jsonResponse
